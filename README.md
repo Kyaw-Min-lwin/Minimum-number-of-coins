@@ -1,7 +1,9 @@
 # Minimum-number-of-coins
 
 This is a 4kyu problem from codewars.Link to the problem - https://www.codewars.com/kata/557f138eb472f5caa7000062/train/javascript.
-Question - You have to write a function that gets an input as either a string or a number and returns the minimum number of coins required to make such an amount.
+
+Question - 
+You have to write a function that gets an input as either a string or a number and returns the minimum number of coins required to make such an amount.
 
 You have to use British currency, considering only the broadly used coins, that is pound coins (1£ and 2£) and penny coins (50p, 20p, 10p, 5p, 2p, 1p).
 
