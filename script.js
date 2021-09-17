@@ -1,11 +1,10 @@
-
 function validate(amount) {
-	// starts with a £ so pounds --ends with a p so pennies and no other £ or p in btw
-	// if it is a float - it is in pounds else if it is an integer ,it is in pennies
+	// starts with a £ so pounds --ends with a p so pence and no other £ or p in btw
+	// if it is a float - it is in pounds else if it is an integer ,it is in pence
 
 	//checks if number is an integer or is a decimal
-	if (!Number.isNaN(+amount)) {
-		if (Number.isInteger(amount)) {
+	if (!Number.isNaN(+amount) && +amount > 0) {
+		if (Number.isInteger(amount * 1)) {
 			return amount + "p";
 		} else {
 			return "£" + amount;
@@ -13,15 +12,16 @@ function validate(amount) {
 	}
 
 	// the amount is in string format from this point on
-	// check if it includes a £ symbol or a penny(p) symbol and,  it doesn't include both symbols at the same time
-	if (
-		(amount.includes("£") === false && amount.includes("p") === false) ||
-		(amount.includes("p") === true && amount.includes("£") === true)
-	) {
+	// check if it includes a £ symbol or a penny(p) symbol
+	if ((amount.includes("£") === false && amount.includes("p") === false) || amount === '') {
 		return false;
 	}
 
-	// check if there is a £ at the start or a p at the end n make sure there is only 1 symbol and the amount is positive
+	if (amount.includes('£') && amount.includes('p') && amount.match(/^£.+p$/) && amount.match(/^£.+p$/).length === 1) {
+		return amount.slice(0, -1);
+	}
+
+	// check if there is a £ at the start or a p at the end n make sure the amount is positive
 	if (
 		amount.match(/(^£.*)|(.*p$)/g) &&
 		amount.match(/£|p/g).length === 1 &&
@@ -32,50 +32,107 @@ function validate(amount) {
 	return false;
 }
 
-function replyString(amount) {
-	//
+function someUnamedFunction(amount, arr) {
+
+	let j = 0, storage = [], coinCount;
+
+	for (let i = arr.length - 1; i >= 0 && amount > 0; i--) {
+		coinCount = 0;
+		j = arr[i];
+		if (amount === arr[i]) {
+			amount -= arr[i];
+			coinCount++;
+			storage.push([coinCount, arr[i]]);
+			continue;
+		}
+		if (amount > j) {
+			while (amount >= j) {
+				coinCount++;
+				j += arr[i];
+			}
+			j = j - arr[i];
+			amount -= j;
+			storage.push([coinCount, arr[i]])
+		}
+
+	}
+	return storage;
+
 }
 
-function someUnamedFunction(amount, arr) {
-	console.log(amount, arr, 'yes')
-}
 function leastAmount(amount) {
+	let str = '';
 	let pounds = [1, 2];
-	let pennies = [1, 2, 5, 10, 20, 50];
+	let pence = [1, 2, 5, 10, 20, 50];
+
 	// if the amount is in pounds
 	if (amount.includes('£')) {
-		console.log('in pounds')
-		if (amount.includes('.')) {
-			//it's in decimal form
-			amount = amount.split('.');
-			someUnamedFunction(amount[0], pounds);
-			someUnamedFunction(amount[1], pennies)
+		amount = Number(amount.slice(1));
+		if (amount % 1 !== 0) {
+			//if it's in decimal form
+			str += returnString(someUnamedFunction(Math.floor(amount / 1), pounds), '£') + ', ';
+			str += returnString(someUnamedFunction((amount % 1).toFixed(2) * 100, pence), 'p');
 		} else {
-			someUnamedFunction(Number(amount.slice(1)), pounds);
+			str += returnString(someUnamedFunction(amount, pounds), '£');
+
 		}
 	}
-	// if the amount is in pennies
-	amount = Number(amount.slice(0, -1));
-	console.log('in pennies', amount)
-	if (amount > 100) {
-		// must be converted to pounds first
-		console.log(Math.floor(amount / 100), amount % 100);
+
+	else {
+		amount = Number(amount.slice(0, -1));
+		if (amount % 1 !== 0) {
+			//if it's in decimal form
+			str += returnString(someUnamedFunction(Math.floor(amount / 1), pounds), '£') + ', ';
+			str += returnString(someUnamedFunction((amount % 1).toFixed(2) * 100, pence), 'p');
+		}
+		// if the amount is in pence
+
+
+		else if (amount >= 100) {
+			// must be converted to pounds first
+			str += returnString(someUnamedFunction(Math.floor(amount / 100), pounds), '£') + ', ';
+			str += returnString(someUnamedFunction(amount % 100, pence), 'p');
+		}
+		else {
+			// It is 100% in pence and less than 100 pence
+			str += returnString(someUnamedFunction(amount, pence), 'p');
+		}
+	}
+	return str.split(',').filter(a => a.length > 1).join(',');
+}
+
+function returnString(arr, unit) {
+	let str = '', coin = 'coin';
+	if (unit === 'p') {
+		arr.forEach(array => {
+			coin = array[0] > 1 ? 'coins' : 'coin';
+			str += `${array[0]} ${array[1]}${unit} ${coin}, `
+		})
 	}
 	else {
+		arr.forEach(array => {
+			coin = array[0] > 1 ? 'coins' : 'coin';
+			str += `${array[0]} ${unit}${array[1]} ${coin}, `
+		})
+	}
 
-		// It is 100% in pennies and less than 100 pennies
-		someUnamedFunction(amount, pennies);
+	str = str.slice(0, -2).split(',');
+	let a = str[str.length - 1];
+	if (str.length > 1) {
+		return str.slice(0, -1).join(',') + ` and${a}`;
+	}
+	else {
+		return str;
 	}
 }
 
 function minCoins(amount) {
+	console.log('\n');
 	console.log(amount);
 	amount = validate(amount);
 	if (!amount) {
 		return "Invalid input - enter a positive amount of money";
 	}
-	leastAmount(amount);
-	// console.log('\n');
-	return '\n';
-	// return amount;
+
+	return leastAmount(amount).trim();
 }
